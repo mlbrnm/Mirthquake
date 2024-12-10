@@ -24,12 +24,12 @@ class MirthLoadTester:
         for i in range(8):
             self.main_frame.grid_rowconfigure(i, weight=1)
             
-        # Create header with custom font
+        # Create header
         header_font = font.Font(family="Arial", size=24, weight="bold")
         header = ttk.Label(self.main_frame, text="MirthQuake Load Tester", font=header_font)
         header.grid(row=0, column=0, columnspan=2, pady=(0, 30))
         
-        # Create a frame for the input fields
+        # Create a frame for input fields
         input_frame = ttk.Frame(self.main_frame)
         input_frame.grid(row=1, column=0, columnspan=2, sticky=(tk.E, tk.W))
         input_frame.grid_columnconfigure(1, weight=1)
@@ -101,7 +101,7 @@ class MirthLoadTester:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
         log_entry = f"[{timestamp}] [{level}] {message}\n"
         self.debug_log.insert(tk.END, log_entry)
-        self.debug_log.see(tk.END)  # Auto-scroll to bottom
+        self.debug_log.see(tk.END)
         
     def clear_log(self):
         self.debug_log.delete(1.0, tk.END)
