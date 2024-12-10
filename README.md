@@ -1,6 +1,6 @@
-A tool built for my company to stress test Mirth Connect servers. Could probably be adapted to lots of HL7 stress testing use cases by modifying the message and pre/post message encapsulation.
+A quick tool I built for my company to stress test Mirth Connect servers. Could probably be adapted to lots of HL7 stress testing use cases by modifying the message and pre/post message encapsulation.
 
-Built on top of this project:
+Built on top of the hl7.py file from this project:
 https://github.com/Tremmors/pyMedicalSimulators
 
 MIT License:
