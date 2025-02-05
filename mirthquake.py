@@ -68,15 +68,19 @@ class MirthLoadTester:
         button_frame.grid(row=4, column=0, columnspan=2, pady=20)
         
         # Control buttons
-        self.start_button = ttk.Button(button_frame, text="Start", command=self.start_test, width=15)
+        self.start_button = ttk.Button(button_frame, text="Start Loop", command=self.start_test, width=15)
         self.start_button.grid(row=0, column=0, padx=10)
         
         self.stop_button = ttk.Button(button_frame, text="Stop", command=self.stop_test, state=tk.DISABLED, width=15)
         self.stop_button.grid(row=0, column=1, padx=10)
         
+        # Single message button
+        self.single_button = ttk.Button(button_frame, text="Send Once", command=self.send_single_message, width=15)
+        self.single_button.grid(row=0, column=2, padx=10)
+        
         # Clear log button
         self.clear_button = ttk.Button(button_frame, text="Clear Log", command=self.clear_log, width=15)
-        self.clear_button.grid(row=0, column=2, padx=10)
+        self.clear_button.grid(row=0, column=3, padx=10)
         
         # Debug Log
         log_label = ttk.Label(self.main_frame, text="Debug Log:", font=status_font)
@@ -89,13 +93,96 @@ class MirthLoadTester:
         self.is_running = False
         self.messages_sent = 0
         
-        # Sample HL7 message (placeholder)
+        # Default message as fallback
+        self.default_message = '<Rec CRC="D90F"><Ver>1</Ver><DtTm>2024-12-04T10:25:20</DtTm><Type>1</Type><Prm><Id>TSSRNB</Id><Val>XXXX1234</Val></Prm><Prm><Id>ADPKID</Id><Val>003083265144</Val></Prm><Prm><Id>DMBLKS</Id><Val>1</Val></Prm><Prm><Id>DMBLDN</Id><Val>5008</Val></Prm><Prm><Id>DMBLBP</Id><Val>NARP</Val></Prm><Prm><Id>DMGRID</Id><Val>dia</Val></Prm><Prm><Id>DCUFVO</Id><Val>1036</Val></Prm><Prm><Id>DCUFTM</Id><Val>115</Val></Prm><Prm><Id>DCUFRA</Id><Val>500</Val></Prm><Prm><Id>DCISVA</Id><Val>0</Val></Prm><Prm><Id>DCRIUT</Id><Val>0</Val></Prm><Prm><Id>DCTHTM</Id><Val>7351</Val></Prm><Prm><Id>DCNACV</Id><Val>1370</Val></Prm><Prm><Id>DCARPR</Id><Val>-10</Val></Prm><Prm><Id>DCVEPR</Id><Val>50</Val></Prm><Prm><Id>DCTMPV</Id><Val>25</Val></Prm><Prm><Id>DCBLFL</Id><Val>400</Val></Prm><Prm><Id>DCPRBV</Id><Val>4880</Val></Prm><Prm><Id>DCRIVO</Id><Val>0</Val></Prm><Prm><Id>DCDITP</Id><Val>359</Val></Prm><Prm><Id>DCDIFL</Id><Val>493</Val></Prm><Prm><Id>DCENDC</Id><Val>137</Val></Prm><Prm><Id>DCTHBO</Id><Val>0</Val></Prm><Prm><Id>DCHEPR</Id><Val>0</Val></Prm><Prm><Id>DCHEPV</Id><Val>0</Val></Prm><Prm><Id>DCHDFT</Id><Val>0</Val></Prm><Prm><Id>DCHDFV</Id><Val>0</Val></Prm><Prm><Id>DCHDFC</Id><Val>0</Val></Prm><Prm><Id>DCHDRA</Id><Val>0</Val></Prm><Prm><Id>DCBFSP</Id><Val></Val></Prm><Prm><Id>DCCLMR</Id><Val>258</Val></Prm><Prm><Id>DCEFKT</Id><Val>311</Val></Prm><Prm><Id>DCEKTV</Id><Val>0</Val></Prm><Prm><Id>DCPSPK</Id><Val>0</Val></Prm><Prm><Id>DCPLNA</Id><Val>1411</Val></Prm><Prm><Id>DCPPNA</Id><Val></Val></Prm><Prm><Id>DCNARM</Id><Val></Val></Prm><Prm><Id>DCNARD</Id><Val></Val></Prm><Prm><Id>DCNAZM</Id><Val></Val></Prm><Prm><Id>DCSHFL</Id><Val></Val></Prm><Prm><Id>DCAFTP</Id><Val>3534</Val></Prm><Prm><Id>DCVFTP</Id><Val>3530</Val></Prm><Prm><Id>DCBDTD</Id><Val>-35</Val></Prm><Prm><Id>DCMERE</Id><Val>5411</Val></Prm><Prm><Id>DCOMBT</Id><Val>0</Val></Prm><Prm><Id>DCROST</Id><Val>0</Val></Prm><Prm><Id>DCHMGL</Id><Val></Val></Prm><Prm><Id>DCHMCT</Id><Val></Val></Prm><Prm><Id>DCTPCO</Id><Val></Val></Prm><Prm><Id>DCRBVO</Id><Val></Val></Prm><Prm><Id>DCMRBV</Id><Val></Val></Prm><Prm><Id>DCKKTM</Id><Val></Val></Prm><Prm><Id>DCHCTS</Id><Val></Val></Prm><Prm><Id>DCHCTE</Id><Val></Val></Prm><Prm><Id>DCHBGS</Id><Val></Val></Prm><Prm><Id>DCHBGE</Id><Val></Val></Prm><Prm><Id>DCTPCS</Id><Val></Val></Prm><Prm><Id>DCTPCE</Id><Val></Val></Prm><Prm><Id>DCXPOV</Id><Val></Val></Prm><Prm><Id>DCKTVT</Id><Val>0</Val></Prm><Prm><Id>DCXPOR</Id><Val></Val></Prm><Prm><Id>DCXESV</Id><Val>0</Val></Prm><Prm><Id>DCDATP</Id><Val>360</Val></Prm><Prm><Id>DCDAFL</Id><Val>500</Val></Prm><Prm><Id>DCRITT</Id><Val>0</Val></Prm><Prm><Id>DCUFRV</Id><Val>500</Val></Prm><Prm><Id>DCUFIV</Id><Val>0</Val></Prm><Prm><Id>DSNAGA</Id><Val>137</Val></Prm><Prm><Id>DSNAAB</Id><Val>350</Val></Prm><Prm><Id>DCHEPA</Id><Val></Val></Prm><Prm><Id>DCCLMA</Id><Val>249</Val></Prm><Prm><Id>DCHDAR</Id><Val></Val></Prm><Prm><Id>DCSNSA</Id><Val></Val></Prm><Prm><Id>DCTVBF</Id><Val>399</Val></Prm><Prm><Id>DCHDTM</Id><Val></Val></Prm><Prm><Id>DCHDFP</Id><Val></Val></Prm><Prm><Id>DCHDFO</Id><Val></Val></Prm><Prm><Id>DCHFPT</Id><Val></Val></Prm><Prm><Id>DCHFPO</Id><Val></Val></Prm><Prm><Id>DCLTDF</Id><Val>20241203081300</Val></Prm><Prm><Id>DCLTTM</Id><Val>20241201170100</Val></Prm><Prm><Id>DCRDST</Id><Val>2</Val></Prm><Prm><Id>DSUFVO</Id><Val>2000</Val></Prm><Prm><Id>DSUFTS</Id><Val>14400</Val></Prm><Prm><Id>DSUFRA</Id><Val>500</Val></Prm><Prm><Id>DSRMAX</Id><Val>3000</Val></Prm><Prm><Id>DSUFPT</Id><Val>0</Val></Prm><Prm><Id>DSDRYW</Id><Val>100</Val></Prm><Prm><Id>DSNPTP</Id><Val>0</Val></Prm><Prm><Id>DSNAST</Id><Val></Val></Prm><Prm><Id>DSNAGO</Id><Val>1370</Val></Prm><Prm><Id>DSNABI</Id><Val>350</Val></Prm><Prm><Id>DSCONC</Id><Val>A1245</Val></Prm><Prm><Id>DSCOSY</Id><Val>1</Val></Prm><Prm><Id>DSDLFW</Id><Val>500</Val></Prm><Prm><Id>DSDITP</Id><Val>360</Val></Prm><Prm><Id>DSDFAE</Id><Val>0</Val></Prm><Prm><Id>DSDFRT</Id><Val>15</Val></Prm><Prm><Id>DSHDFT</Id><Val>0</Val></Prm><Prm><Id>DSHRFM</Id><Val></Val></Prm><Prm><Id>DSHFEN</Id><Val>0</Val></Prm><Prm><Id>DSOBOV</Id><Val>120</Val></Prm><Prm><Id>DSHBFM</Id><Val>120</Val></Prm><Prm><Id>DSHBFA</Id><Val>0</Val></Prm><Prm><Id>DSHBEN</Id><Val>0</Val></Prm><Prm><Id>DSHFAE</Id><Val>1</Val></Prm><Prm><Id>DSHDFV</Id><Val></Val></Prm><Prm><Id>DSFITY</Id><Val>FX800 HDF</Val></Prm><Prm><Id>DSTPCO</Id><Val>69</Val></Prm><Prm><Id>DSSNSV</Id><Val>35</Val></Prm><Prm><Id>DSAUSN</Id><Val>1</Val></Prm><Prm><Id>DSSNRL</Id><Val>20</Val></Prm><Prm><Id>DSKKXP</Id><Val>400</Val></Prm><Prm><Id>DSKKIP</Id><Val>50</Val></Prm><Prm><Id>DSHMTC</Id><Val>35</Val></Prm><Prm><Id>DSTKTV</Id><Val>130</Val></Prm><Prm><Id>DSVURE</Id><Val>0</Val></Prm><Prm><Id>DSMIOC</Id><Val>1500</Val></Prm><Prm><Id>DSIOOC</Id><Val>1</Val></Prm><Prm><Id>DSHEPE</Id><Val>0</Val></Prm><Prm><Id>DSHEST</Id><Val>1800</Val></Prm><Prm><Id>DSHEPR</Id><Val>10</Val></Prm><Prm><Id>DSHBVO</Id><Val>10</Val></Prm><Prm><Id>DSHEAB</Id><Val>0</Val></Prm><Prm><Id>DSCRBV</Id><Val>95</Val></Prm><Prm><Id>DSMUBC</Id><Val>2800</Val></Prm><Prm><Id>DSBVMP</Id><Val>0</Val></Prm><Prm><Id>DSBVMN</Id><Val>0</Val></Prm><Prm><Id>DSBVMR</Id><Val>0</Val></Prm><Prm><Id>DSBVMA</Id><Val>0</Val></Prm><Prm><Id>DSTDST</Id><Val>0</Val></Prm><Prm><Id>DSXSYP</Id><Val>165</Val></Prm><Prm><Id>DSISYP</Id><Val>90</Val></Prm><Prm><Id>DSXDIP</Id><Val>100</Val></Prm><Prm><Id>DSIDIP</Id><Val>50</Val></Prm><Prm><Id>DSXMUL</Id><Val>120</Val></Prm><Prm><Id>DSIMUL</Id><Val>70</Val></Prm><Prm><Id>DSXPUL</Id><Val>150</Val></Prm><Prm><Id>DSIPUL</Id><Val>40</Val></Prm><Prm><Id>DSCYTM</Id><Val>0</Val></Prm><Prm><Id>DSBPPC</Id><Val>196</Val></Prm><Prm><Id>DSNACT</Id><Val>0</Val></Prm><Prm><Id>DSNADZ</Id><Val>0</Val></Prm><Prm><Id>DSNADC</Id><Val>0</Val></Prm><Prm><Id>DSPLKA</Id><Val>48</Val></Prm><Prm><Id>TSDVNM</Id><Val>5008</Val></Prm><Prm><Id>TSDMNF</Id><Val>Fresenius Medical Care</Val></Prm><Prm><Id>TSDLBL</Id><Val>NARP</Val></Prm><Prm><Id>TSSRNB</Id><Val>0VEANW70</Val></Prm><Prm><Id>TSSSWV</Id><Val>462</Val></Prm><Prm><Id>TSMAIN</Id><Val>2</Val></Prm><Prm><Id>TSALST</Id><Val>0</Val></Prm><Prm><Id>TSBCSB</Id><Val>767F</Val></Prm><Prm><Id>TSBCAB</Id><Val>FFFF</Val></Prm><Prm><Id>TSDLFT</Id><Val>1</Val></Prm><Prm><Id>TSTSTR</Id><Val>20241204082000</Val></Prm><Prm><Id>TSPRGR</Id><Val>51</Val></Prm><Prm><Id>TSMOPT</Id><Val>1021</Val></Prm></Rec>'
+        
+        # Initialize message
         self.sample_message = Message()
-        self.sample_message.SetText('<Rec CRC="D90F"><Ver>1</Ver><DtTm>2024-12-04T10:25:20</DtTm><Type>1</Type><Prm><Id>TSSRNB</Id><Val>XXXX1234</Val></Prm><Prm><Id>ADPKID</Id><Val>003083265144</Val></Prm><Prm><Id>DMBLKS</Id><Val>1</Val></Prm><Prm><Id>DMBLDN</Id><Val>5008</Val></Prm><Prm><Id>DMBLBP</Id><Val>NARP</Val></Prm><Prm><Id>DMGRID</Id><Val>dia</Val></Prm><Prm><Id>DCUFVO</Id><Val>1036</Val></Prm><Prm><Id>DCUFTM</Id><Val>115</Val></Prm><Prm><Id>DCUFRA</Id><Val>500</Val></Prm><Prm><Id>DCISVA</Id><Val>0</Val></Prm><Prm><Id>DCRIUT</Id><Val>0</Val></Prm><Prm><Id>DCTHTM</Id><Val>7351</Val></Prm><Prm><Id>DCNACV</Id><Val>1370</Val></Prm><Prm><Id>DCARPR</Id><Val>-10</Val></Prm><Prm><Id>DCVEPR</Id><Val>50</Val></Prm><Prm><Id>DCTMPV</Id><Val>25</Val></Prm><Prm><Id>DCBLFL</Id><Val>400</Val></Prm><Prm><Id>DCPRBV</Id><Val>4880</Val></Prm><Prm><Id>DCRIVO</Id><Val>0</Val></Prm><Prm><Id>DCDITP</Id><Val>359</Val></Prm><Prm><Id>DCDIFL</Id><Val>493</Val></Prm><Prm><Id>DCENDC</Id><Val>137</Val></Prm><Prm><Id>DCTHBO</Id><Val>0</Val></Prm><Prm><Id>DCHEPR</Id><Val>0</Val></Prm><Prm><Id>DCHEPV</Id><Val>0</Val></Prm><Prm><Id>DCHDFT</Id><Val>0</Val></Prm><Prm><Id>DCHDFV</Id><Val>0</Val></Prm><Prm><Id>DCHDFC</Id><Val>0</Val></Prm><Prm><Id>DCHDRA</Id><Val>0</Val></Prm><Prm><Id>DCBFSP</Id><Val></Val></Prm><Prm><Id>DCCLMR</Id><Val>258</Val></Prm><Prm><Id>DCEFKT</Id><Val>311</Val></Prm><Prm><Id>DCEKTV</Id><Val>0</Val></Prm><Prm><Id>DCPSPK</Id><Val>0</Val></Prm><Prm><Id>DCPLNA</Id><Val>1411</Val></Prm><Prm><Id>DCPPNA</Id><Val></Val></Prm><Prm><Id>DCNARM</Id><Val></Val></Prm><Prm><Id>DCNARD</Id><Val></Val></Prm><Prm><Id>DCNAZM</Id><Val></Val></Prm><Prm><Id>DCSHFL</Id><Val></Val></Prm><Prm><Id>DCAFTP</Id><Val>3534</Val></Prm><Prm><Id>DCVFTP</Id><Val>3530</Val></Prm><Prm><Id>DCBDTD</Id><Val>-35</Val></Prm><Prm><Id>DCMERE</Id><Val>5411</Val></Prm><Prm><Id>DCOMBT</Id><Val>0</Val></Prm><Prm><Id>DCROST</Id><Val>0</Val></Prm><Prm><Id>DCHMGL</Id><Val></Val></Prm><Prm><Id>DCHMCT</Id><Val></Val></Prm><Prm><Id>DCTPCO</Id><Val></Val></Prm><Prm><Id>DCRBVO</Id><Val></Val></Prm><Prm><Id>DCMRBV</Id><Val></Val></Prm><Prm><Id>DCKKTM</Id><Val></Val></Prm><Prm><Id>DCHCTS</Id><Val></Val></Prm><Prm><Id>DCHCTE</Id><Val></Val></Prm><Prm><Id>DCHBGS</Id><Val></Val></Prm><Prm><Id>DCHBGE</Id><Val></Val></Prm><Prm><Id>DCTPCS</Id><Val></Val></Prm><Prm><Id>DCTPCE</Id><Val></Val></Prm><Prm><Id>DCXPOV</Id><Val></Val></Prm><Prm><Id>DCKTVT</Id><Val>0</Val></Prm><Prm><Id>DCXPOR</Id><Val></Val></Prm><Prm><Id>DCXESV</Id><Val>0</Val></Prm><Prm><Id>DCDATP</Id><Val>360</Val></Prm><Prm><Id>DCDAFL</Id><Val>500</Val></Prm><Prm><Id>DCRITT</Id><Val>0</Val></Prm><Prm><Id>DCUFRV</Id><Val>500</Val></Prm><Prm><Id>DCUFIV</Id><Val>0</Val></Prm><Prm><Id>DSNAGA</Id><Val>137</Val></Prm><Prm><Id>DSNAAB</Id><Val>350</Val></Prm><Prm><Id>DCHEPA</Id><Val></Val></Prm><Prm><Id>DCCLMA</Id><Val>249</Val></Prm><Prm><Id>DCHDAR</Id><Val></Val></Prm><Prm><Id>DCSNSA</Id><Val></Val></Prm><Prm><Id>DCTVBF</Id><Val>399</Val></Prm><Prm><Id>DCHDTM</Id><Val></Val></Prm><Prm><Id>DCHDFP</Id><Val></Val></Prm><Prm><Id>DCHDFO</Id><Val></Val></Prm><Prm><Id>DCHFPT</Id><Val></Val></Prm><Prm><Id>DCHFPO</Id><Val></Val></Prm><Prm><Id>DCLTDF</Id><Val>20241203081300</Val></Prm><Prm><Id>DCLTTM</Id><Val>20241201170100</Val></Prm><Prm><Id>DCRDST</Id><Val>2</Val></Prm><Prm><Id>DSUFVO</Id><Val>2000</Val></Prm><Prm><Id>DSUFTS</Id><Val>14400</Val></Prm><Prm><Id>DSUFRA</Id><Val>500</Val></Prm><Prm><Id>DSRMAX</Id><Val>3000</Val></Prm><Prm><Id>DSUFPT</Id><Val>0</Val></Prm><Prm><Id>DSDRYW</Id><Val>100</Val></Prm><Prm><Id>DSNPTP</Id><Val>0</Val></Prm><Prm><Id>DSNAST</Id><Val></Val></Prm><Prm><Id>DSNAGO</Id><Val>1370</Val></Prm><Prm><Id>DSNABI</Id><Val>350</Val></Prm><Prm><Id>DSCONC</Id><Val>A1245</Val></Prm><Prm><Id>DSCOSY</Id><Val>1</Val></Prm><Prm><Id>DSDLFW</Id><Val>500</Val></Prm><Prm><Id>DSDITP</Id><Val>360</Val></Prm><Prm><Id>DSDFAE</Id><Val>0</Val></Prm><Prm><Id>DSDFRT</Id><Val>15</Val></Prm><Prm><Id>DSHDFT</Id><Val>0</Val></Prm><Prm><Id>DSHRFM</Id><Val></Val></Prm><Prm><Id>DSHFEN</Id><Val>0</Val></Prm><Prm><Id>DSOBOV</Id><Val>120</Val></Prm><Prm><Id>DSHBFM</Id><Val>120</Val></Prm><Prm><Id>DSHBFA</Id><Val>0</Val></Prm><Prm><Id>DSHBEN</Id><Val>0</Val></Prm><Prm><Id>DSHFAE</Id><Val>1</Val></Prm><Prm><Id>DSHDFV</Id><Val></Val></Prm><Prm><Id>DSFITY</Id><Val>FX800 HDF</Val></Prm><Prm><Id>DSTPCO</Id><Val>69</Val></Prm><Prm><Id>DSSNSV</Id><Val>35</Val></Prm><Prm><Id>DSAUSN</Id><Val>1</Val></Prm><Prm><Id>DSSNRL</Id><Val>20</Val></Prm><Prm><Id>DSKKXP</Id><Val>400</Val></Prm><Prm><Id>DSKKIP</Id><Val>50</Val></Prm><Prm><Id>DSHMTC</Id><Val>35</Val></Prm><Prm><Id>DSTKTV</Id><Val>130</Val></Prm><Prm><Id>DSVURE</Id><Val>0</Val></Prm><Prm><Id>DSMIOC</Id><Val>1500</Val></Prm><Prm><Id>DSIOOC</Id><Val>1</Val></Prm><Prm><Id>DSHEPE</Id><Val>0</Val></Prm><Prm><Id>DSHEST</Id><Val>1800</Val></Prm><Prm><Id>DSHEPR</Id><Val>10</Val></Prm><Prm><Id>DSHBVO</Id><Val>10</Val></Prm><Prm><Id>DSHEAB</Id><Val>0</Val></Prm><Prm><Id>DSCRBV</Id><Val>95</Val></Prm><Prm><Id>DSMUBC</Id><Val>2800</Val></Prm><Prm><Id>DSBVMP</Id><Val>0</Val></Prm><Prm><Id>DSBVMN</Id><Val>0</Val></Prm><Prm><Id>DSBVMR</Id><Val>0</Val></Prm><Prm><Id>DSBVMA</Id><Val>0</Val></Prm><Prm><Id>DSTDST</Id><Val>0</Val></Prm><Prm><Id>DSXSYP</Id><Val>165</Val></Prm><Prm><Id>DSISYP</Id><Val>90</Val></Prm><Prm><Id>DSXDIP</Id><Val>100</Val></Prm><Prm><Id>DSIDIP</Id><Val>50</Val></Prm><Prm><Id>DSXMUL</Id><Val>120</Val></Prm><Prm><Id>DSIMUL</Id><Val>70</Val></Prm><Prm><Id>DSXPUL</Id><Val>150</Val></Prm><Prm><Id>DSIPUL</Id><Val>40</Val></Prm><Prm><Id>DSCYTM</Id><Val>0</Val></Prm><Prm><Id>DSBPPC</Id><Val>196</Val></Prm><Prm><Id>DSNACT</Id><Val>0</Val></Prm><Prm><Id>DSNADZ</Id><Val>0</Val></Prm><Prm><Id>DSNADC</Id><Val>0</Val></Prm><Prm><Id>DSPLKA</Id><Val>48</Val></Prm><Prm><Id>TSDVNM</Id><Val>5008</Val></Prm><Prm><Id>TSDMNF</Id><Val>Fresenius Medical Care</Val></Prm><Prm><Id>TSDLBL</Id><Val>NARP</Val></Prm><Prm><Id>TSSRNB</Id><Val>0VEANW70</Val></Prm><Prm><Id>TSSSWV</Id><Val>462</Val></Prm><Prm><Id>TSMAIN</Id><Val>2</Val></Prm><Prm><Id>TSALST</Id><Val>0</Val></Prm><Prm><Id>TSBCSB</Id><Val>767F</Val></Prm><Prm><Id>TSBCAB</Id><Val>FFFF</Val></Prm><Prm><Id>TSDLFT</Id><Val>1</Val></Prm><Prm><Id>TSTSTR</Id><Val>20241204082000</Val></Prm><Prm><Id>TSPRGR</Id><Val>51</Val></Prm><Prm><Id>TSMOPT</Id><Val>1021</Val></Prm></Rec>')
+        self.load_message()
         
         # Initial log message
         self.log_message("Load Tester initialized")
         self.log_message("Ready to start testing")
+        
+    def load_message(self):
+        """Load message from file or use default if file is invalid"""
+        try:
+            with open('message.xml', 'r') as f:
+                content = f.read().strip()
+                if not content:
+                    raise ValueError("Empty file")
+                    
+                # Basic XML validation - will raise if invalid
+                import xml.etree.ElementTree as ET
+                ET.fromstring(content)
+                
+                self.sample_message.SetText(content)
+                self.log_message("Successfully loaded message from message.xml")
+                
+        except Exception as e:
+            self.log_message(f"Error loading message.xml ({str(e)}), using default message", "WARNING")
+            self.sample_message.SetText(self.default_message)
+            
+    def send_single_message(self):
+        """Send a single message without starting the continuous loop"""
+        if not self.validate_inputs():
+            return
+            
+        # Disable buttons during send
+        self.start_button.config(state=tk.DISABLED)
+        self.single_button.config(state=tk.DISABLED)
+        self.status_var.set("Sending single message...")
+        
+        # Start the send in a separate thread
+        self.test_thread = threading.Thread(target=self.send_one_message)
+        self.test_thread.daemon = True
+        self.test_thread.start()
+        
+    def send_one_message(self):
+        """Helper method to send one message and handle the response"""
+        try:
+            self.log_message(f"Attempting to connect to {self.ip_var.get()}:{self.port_var.get()}")
+            conn = Connection(self.ip_var.get(), int(self.port_var.get()))
+            
+            try:
+                conn.Open()
+                self.log_message("Connection established successfully")
+                
+                # Log the message being sent (first few characters)
+                msg_preview = str(self.sample_message.Render())[:50] + "..."
+                self.log_message(f"Sending message: {msg_preview}")
+                
+                # Send message and get response
+                response = conn.Send(self.sample_message)
+                self.messages_sent += 1
+                self.progress_var.set(f"Messages sent: {self.messages_sent}")
+                
+                # Log the response
+                try:
+                    response_text = response.decode('windows-1252')
+                    self.log_message(f"Response received: {response_text}")
+                except:
+                    # If we can't decode the response, show the raw bytes
+                    self.log_message(f"Raw response received: {response}")
+                
+                self.log_message("Closing connection...")
+                conn.Close()
+                self.log_message("Connection closed successfully")
+                self.status_var.set("Single message sent successfully")
+                
+            except Exception as e:
+                error_msg = f"Connection error: {str(e)}"
+                self.log_message(error_msg, "ERROR")
+                self.status_var.set(error_msg)
+            
+        except Exception as e:
+            error_msg = f"Setup error: {str(e)}"
+            self.log_message(error_msg, "ERROR")
+            self.status_var.set(error_msg)
+        
+        # Re-enable buttons
+        self.start_button.config(state=tk.NORMAL)
+        self.single_button.config(state=tk.NORMAL)
         
     def log_message(self, message, level="INFO"):
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
@@ -130,6 +217,7 @@ class MirthLoadTester:
         self.is_running = True
         self.messages_sent = 0
         self.start_button.config(state=tk.DISABLED)
+        self.single_button.config(state=tk.DISABLED)
         self.stop_button.config(state=tk.NORMAL)
         self.status_var.set("Running...")
         
@@ -146,6 +234,7 @@ class MirthLoadTester:
     def stop_test(self):
         self.is_running = False
         self.start_button.config(state=tk.NORMAL)
+        self.single_button.config(state=tk.NORMAL)
         self.stop_button.config(state=tk.DISABLED)
         self.status_var.set("Stopped")
         self.log_message("Test stopped by user")
