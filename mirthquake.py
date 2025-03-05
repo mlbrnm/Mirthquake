@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, font, scrolledtext
+from tkinter import ttk, messagebox, font, scrolledtext, filedialog
 import time
 import threading
 from hl7 import Connection, Message
@@ -9,7 +9,7 @@ class MirthLoadTester:
     def __init__(self, root):
         self.root = root
         self.root.title("Mirth Load Tester")
-        self.root.geometry("600x700")
+        self.root.geometry("600x600")
         
         # Configure grid weight for centering
         self.root.grid_columnconfigure(0, weight=1)
@@ -27,7 +27,7 @@ class MirthLoadTester:
         # Create header
         header_font = font.Font(family="Arial", size=24, weight="bold")
         header = ttk.Label(self.main_frame, text="MirthQuake Load Tester", font=header_font)
-        header.grid(row=0, column=0, columnspan=2, pady=(0, 30))
+        header.grid(row=0, column=0, columnspan=2, pady=(0, 20))
         
         # Create a frame for input fields
         input_frame = ttk.Frame(self.main_frame)
@@ -65,7 +65,7 @@ class MirthLoadTester:
         
         # Button frame for centered buttons
         button_frame = ttk.Frame(self.main_frame)
-        button_frame.grid(row=4, column=0, columnspan=2, pady=20)
+        button_frame.grid(row=4, column=0, columnspan=2, pady=10)
         
         # Control buttons
         self.start_button = ttk.Button(button_frame, text="Start Loop", command=self.start_test, width=15)
@@ -86,7 +86,7 @@ class MirthLoadTester:
         log_label = ttk.Label(self.main_frame, text="Debug Log:", font=status_font)
         log_label.grid(row=5, column=0, columnspan=2, pady=(20,5), sticky=tk.W)
         
-        self.debug_log = scrolledtext.ScrolledText(self.main_frame, height=15, width=70)
+        self.debug_log = scrolledtext.ScrolledText(self.main_frame, height=10, width=70)
         self.debug_log.grid(row=6, column=0, columnspan=2, sticky=(tk.W, tk.E))
         
         # Testing state
@@ -94,7 +94,20 @@ class MirthLoadTester:
         self.messages_sent = 0
         
         # Default message as fallback
-        self.default_message = '<Rec CRC="D90F"><Ver>1</Ver><DtTm>2024-12-04T10:25:20</DtTm><Type>1</Type><Prm><Id>TSSRNB</Id><Val>XXXX1234</Val></Prm><Prm><Id>ADPKID</Id><Val>003083265144</Val></Prm><Prm><Id>DMBLKS</Id><Val>1</Val></Prm><Prm><Id>DMBLDN</Id><Val>5008</Val></Prm><Prm><Id>DMBLBP</Id><Val>NARP</Val></Prm><Prm><Id>DMGRID</Id><Val>dia</Val></Prm><Prm><Id>DCUFVO</Id><Val>1036</Val></Prm><Prm><Id>DCUFTM</Id><Val>115</Val></Prm><Prm><Id>DCUFRA</Id><Val>500</Val></Prm><Prm><Id>DCISVA</Id><Val>0</Val></Prm><Prm><Id>DCRIUT</Id><Val>0</Val></Prm><Prm><Id>DCTHTM</Id><Val>7351</Val></Prm><Prm><Id>DCNACV</Id><Val>1370</Val></Prm><Prm><Id>DCARPR</Id><Val>-10</Val></Prm><Prm><Id>DCVEPR</Id><Val>50</Val></Prm><Prm><Id>DCTMPV</Id><Val>25</Val></Prm><Prm><Id>DCBLFL</Id><Val>400</Val></Prm><Prm><Id>DCPRBV</Id><Val>4880</Val></Prm><Prm><Id>DCRIVO</Id><Val>0</Val></Prm><Prm><Id>DCDITP</Id><Val>359</Val></Prm><Prm><Id>DCDIFL</Id><Val>493</Val></Prm><Prm><Id>DCENDC</Id><Val>137</Val></Prm><Prm><Id>DCTHBO</Id><Val>0</Val></Prm><Prm><Id>DCHEPR</Id><Val>0</Val></Prm><Prm><Id>DCHEPV</Id><Val>0</Val></Prm><Prm><Id>DCHDFT</Id><Val>0</Val></Prm><Prm><Id>DCHDFV</Id><Val>0</Val></Prm><Prm><Id>DCHDFC</Id><Val>0</Val></Prm><Prm><Id>DCHDRA</Id><Val>0</Val></Prm><Prm><Id>DCBFSP</Id><Val></Val></Prm><Prm><Id>DCCLMR</Id><Val>258</Val></Prm><Prm><Id>DCEFKT</Id><Val>311</Val></Prm><Prm><Id>DCEKTV</Id><Val>0</Val></Prm><Prm><Id>DCPSPK</Id><Val>0</Val></Prm><Prm><Id>DCPLNA</Id><Val>1411</Val></Prm><Prm><Id>DCPPNA</Id><Val></Val></Prm><Prm><Id>DCNARM</Id><Val></Val></Prm><Prm><Id>DCNARD</Id><Val></Val></Prm><Prm><Id>DCNAZM</Id><Val></Val></Prm><Prm><Id>DCSHFL</Id><Val></Val></Prm><Prm><Id>DCAFTP</Id><Val>3534</Val></Prm><Prm><Id>DCVFTP</Id><Val>3530</Val></Prm><Prm><Id>DCBDTD</Id><Val>-35</Val></Prm><Prm><Id>DCMERE</Id><Val>5411</Val></Prm><Prm><Id>DCOMBT</Id><Val>0</Val></Prm><Prm><Id>DCROST</Id><Val>0</Val></Prm><Prm><Id>DCHMGL</Id><Val></Val></Prm><Prm><Id>DCHMCT</Id><Val></Val></Prm><Prm><Id>DCTPCO</Id><Val></Val></Prm><Prm><Id>DCRBVO</Id><Val></Val></Prm><Prm><Id>DCMRBV</Id><Val></Val></Prm><Prm><Id>DCKKTM</Id><Val></Val></Prm><Prm><Id>DCHCTS</Id><Val></Val></Prm><Prm><Id>DCHCTE</Id><Val></Val></Prm><Prm><Id>DCHBGS</Id><Val></Val></Prm><Prm><Id>DCHBGE</Id><Val></Val></Prm><Prm><Id>DCTPCS</Id><Val></Val></Prm><Prm><Id>DCTPCE</Id><Val></Val></Prm><Prm><Id>DCXPOV</Id><Val></Val></Prm><Prm><Id>DCKTVT</Id><Val>0</Val></Prm><Prm><Id>DCXPOR</Id><Val></Val></Prm><Prm><Id>DCXESV</Id><Val>0</Val></Prm><Prm><Id>DCDATP</Id><Val>360</Val></Prm><Prm><Id>DCDAFL</Id><Val>500</Val></Prm><Prm><Id>DCRITT</Id><Val>0</Val></Prm><Prm><Id>DCUFRV</Id><Val>500</Val></Prm><Prm><Id>DCUFIV</Id><Val>0</Val></Prm><Prm><Id>DSNAGA</Id><Val>137</Val></Prm><Prm><Id>DSNAAB</Id><Val>350</Val></Prm><Prm><Id>DCHEPA</Id><Val></Val></Prm><Prm><Id>DCCLMA</Id><Val>249</Val></Prm><Prm><Id>DCHDAR</Id><Val></Val></Prm><Prm><Id>DCSNSA</Id><Val></Val></Prm><Prm><Id>DCTVBF</Id><Val>399</Val></Prm><Prm><Id>DCHDTM</Id><Val></Val></Prm><Prm><Id>DCHDFP</Id><Val></Val></Prm><Prm><Id>DCHDFO</Id><Val></Val></Prm><Prm><Id>DCHFPT</Id><Val></Val></Prm><Prm><Id>DCHFPO</Id><Val></Val></Prm><Prm><Id>DCLTDF</Id><Val>20241203081300</Val></Prm><Prm><Id>DCLTTM</Id><Val>20241201170100</Val></Prm><Prm><Id>DCRDST</Id><Val>2</Val></Prm><Prm><Id>DSUFVO</Id><Val>2000</Val></Prm><Prm><Id>DSUFTS</Id><Val>14400</Val></Prm><Prm><Id>DSUFRA</Id><Val>500</Val></Prm><Prm><Id>DSRMAX</Id><Val>3000</Val></Prm><Prm><Id>DSUFPT</Id><Val>0</Val></Prm><Prm><Id>DSDRYW</Id><Val>100</Val></Prm><Prm><Id>DSNPTP</Id><Val>0</Val></Prm><Prm><Id>DSNAST</Id><Val></Val></Prm><Prm><Id>DSNAGO</Id><Val>1370</Val></Prm><Prm><Id>DSNABI</Id><Val>350</Val></Prm><Prm><Id>DSCONC</Id><Val>A1245</Val></Prm><Prm><Id>DSCOSY</Id><Val>1</Val></Prm><Prm><Id>DSDLFW</Id><Val>500</Val></Prm><Prm><Id>DSDITP</Id><Val>360</Val></Prm><Prm><Id>DSDFAE</Id><Val>0</Val></Prm><Prm><Id>DSDFRT</Id><Val>15</Val></Prm><Prm><Id>DSHDFT</Id><Val>0</Val></Prm><Prm><Id>DSHRFM</Id><Val></Val></Prm><Prm><Id>DSHFEN</Id><Val>0</Val></Prm><Prm><Id>DSOBOV</Id><Val>120</Val></Prm><Prm><Id>DSHBFM</Id><Val>120</Val></Prm><Prm><Id>DSHBFA</Id><Val>0</Val></Prm><Prm><Id>DSHBEN</Id><Val>0</Val></Prm><Prm><Id>DSHFAE</Id><Val>1</Val></Prm><Prm><Id>DSHDFV</Id><Val></Val></Prm><Prm><Id>DSFITY</Id><Val>FX800 HDF</Val></Prm><Prm><Id>DSTPCO</Id><Val>69</Val></Prm><Prm><Id>DSSNSV</Id><Val>35</Val></Prm><Prm><Id>DSAUSN</Id><Val>1</Val></Prm><Prm><Id>DSSNRL</Id><Val>20</Val></Prm><Prm><Id>DSKKXP</Id><Val>400</Val></Prm><Prm><Id>DSKKIP</Id><Val>50</Val></Prm><Prm><Id>DSHMTC</Id><Val>35</Val></Prm><Prm><Id>DSTKTV</Id><Val>130</Val></Prm><Prm><Id>DSVURE</Id><Val>0</Val></Prm><Prm><Id>DSMIOC</Id><Val>1500</Val></Prm><Prm><Id>DSIOOC</Id><Val>1</Val></Prm><Prm><Id>DSHEPE</Id><Val>0</Val></Prm><Prm><Id>DSHEST</Id><Val>1800</Val></Prm><Prm><Id>DSHEPR</Id><Val>10</Val></Prm><Prm><Id>DSHBVO</Id><Val>10</Val></Prm><Prm><Id>DSHEAB</Id><Val>0</Val></Prm><Prm><Id>DSCRBV</Id><Val>95</Val></Prm><Prm><Id>DSMUBC</Id><Val>2800</Val></Prm><Prm><Id>DSBVMP</Id><Val>0</Val></Prm><Prm><Id>DSBVMN</Id><Val>0</Val></Prm><Prm><Id>DSBVMR</Id><Val>0</Val></Prm><Prm><Id>DSBVMA</Id><Val>0</Val></Prm><Prm><Id>DSTDST</Id><Val>0</Val></Prm><Prm><Id>DSXSYP</Id><Val>165</Val></Prm><Prm><Id>DSISYP</Id><Val>90</Val></Prm><Prm><Id>DSXDIP</Id><Val>100</Val></Prm><Prm><Id>DSIDIP</Id><Val>50</Val></Prm><Prm><Id>DSXMUL</Id><Val>120</Val></Prm><Prm><Id>DSIMUL</Id><Val>70</Val></Prm><Prm><Id>DSXPUL</Id><Val>150</Val></Prm><Prm><Id>DSIPUL</Id><Val>40</Val></Prm><Prm><Id>DSCYTM</Id><Val>0</Val></Prm><Prm><Id>DSBPPC</Id><Val>196</Val></Prm><Prm><Id>DSNACT</Id><Val>0</Val></Prm><Prm><Id>DSNADZ</Id><Val>0</Val></Prm><Prm><Id>DSNADC</Id><Val>0</Val></Prm><Prm><Id>DSPLKA</Id><Val>48</Val></Prm><Prm><Id>TSDVNM</Id><Val>5008</Val></Prm><Prm><Id>TSDMNF</Id><Val>Fresenius Medical Care</Val></Prm><Prm><Id>TSDLBL</Id><Val>NARP</Val></Prm><Prm><Id>TSSRNB</Id><Val>0VEANW70</Val></Prm><Prm><Id>TSSSWV</Id><Val>462</Val></Prm><Prm><Id>TSMAIN</Id><Val>2</Val></Prm><Prm><Id>TSALST</Id><Val>0</Val></Prm><Prm><Id>TSBCSB</Id><Val>767F</Val></Prm><Prm><Id>TSBCAB</Id><Val>FFFF</Val></Prm><Prm><Id>TSDLFT</Id><Val>1</Val></Prm><Prm><Id>TSTSTR</Id><Val>20241204082000</Val></Prm><Prm><Id>TSPRGR</Id><Val>51</Val></Prm><Prm><Id>TSMOPT</Id><Val>1021</Val></Prm></Rec>'
+        self.default_message = ''
+        
+        # Message file selection
+        file_frame = ttk.Frame(self.main_frame)
+        file_frame.grid(row=7, column=0, columnspan=2, pady=(10,5), sticky=(tk.W, tk.E))
+        file_frame.grid_columnconfigure(1, weight=1)
+        
+        ttk.Label(file_frame, text="Message File:").grid(row=0, column=0, sticky=tk.E, padx=(0,10))
+        self.file_path_var = tk.StringVar(value="message.xml")
+        self.file_path_label = ttk.Label(file_frame, textvariable=self.file_path_var, wraplength=400)
+        self.file_path_label.grid(row=0, column=1, sticky=tk.W)
+        
+        self.browse_button = ttk.Button(file_frame, text="Browse", command=self.browse_file)
+        self.browse_button.grid(row=0, column=2, padx=(10,0))
         
         # Initialize message
         self.sample_message = Message()
@@ -104,10 +117,24 @@ class MirthLoadTester:
         self.log_message("Load Tester initialized")
         self.log_message("Ready to start testing")
         
+        # Schedule file picker to open after window appears
+        self.root.after(100, self.browse_file)
+        
+    def browse_file(self):
+        """Open file dialog to select message file"""
+        file_path = filedialog.askopenfilename(
+            title="Select Message File",
+            filetypes=[("XML files", "*.xml"), ("All files", "*.*")]
+        )
+        if file_path:
+            self.file_path_var.set(file_path)
+            self.load_message()
+    
     def load_message(self):
-        """Load message from file or use default if file is invalid"""
+        """Load message from selected file or use default if file is invalid"""
         try:
-            with open('message.xml', 'r') as f:
+            file_path = self.file_path_var.get()
+            with open(file_path, 'r') as f:
                 content = f.read().strip()
                 if not content:
                     raise ValueError("Empty file")
@@ -117,10 +144,10 @@ class MirthLoadTester:
                 ET.fromstring(content)
                 
                 self.sample_message.SetText(content)
-                self.log_message("Successfully loaded message from message.xml")
+                self.log_message(f"Successfully loaded message from {file_path}")
                 
         except Exception as e:
-            self.log_message(f"Error loading message.xml ({str(e)}), using default message", "WARNING")
+            self.log_message(f"Error loading {file_path} ({str(e)}), using default message", "WARNING")
             self.sample_message.SetText(self.default_message)
             
     def send_single_message(self):

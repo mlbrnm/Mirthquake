@@ -3,3 +3,4 @@ build/
 dist/
 __pycache__/hl7.cpython-311.pyc
 Mirthquake.zip
+*.xml
