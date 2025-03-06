@@ -36,7 +36,7 @@ class MirthLoadTester:
         
         # IP Address input
         ttk.Label(input_frame, text="IP Address:").grid(row=0, column=0, sticky=tk.E, padx=(0,10), pady=5)
-        self.ip_var = tk.StringVar(value="10.107.78.63")
+        self.ip_var = tk.StringVar(value="10.107.78.64")
         self.ip_entry = ttk.Entry(input_frame, textvariable=self.ip_var, width=30)
         self.ip_entry.grid(row=0, column=1, sticky=(tk.W, tk.E), pady=5)
         
@@ -51,6 +51,17 @@ class MirthLoadTester:
         self.mpm_var = tk.StringVar(value="300")
         self.mpm_entry = ttk.Entry(input_frame, textvariable=self.mpm_var, width=30)
         self.mpm_entry.grid(row=2, column=1, sticky=(tk.W, tk.E), pady=5)
+        
+        # New connection per message toggle
+        self.new_conn_var = tk.BooleanVar(value=False)
+        self.new_conn_check = ttk.Checkbutton(
+            input_frame, 
+            text="New Connection Per Message",
+            variable=self.new_conn_var
+        )
+        self.new_conn_check.grid(row=3, column=0, columnspan=2, pady=5)
+        tooltip = "When checked, opens a new connection for each message.\nWhen unchecked, keeps one persistent connection."
+        self.new_conn_check.tooltip = tooltip  # Store tooltip text for future reference
         
         # Status display
         status_font = font.Font(size=10)
@@ -252,6 +263,7 @@ class MirthLoadTester:
         self.log_message(f"IP: {self.ip_var.get()}")
         self.log_message(f"Port: {self.port_var.get()}")
         self.log_message(f"Messages per minute: {self.mpm_var.get()}")
+        self.log_message(f"New connection per message: {self.new_conn_var.get()}")
         
         # Start the test in a separate thread
         self.test_thread = threading.Thread(target=self.run_test)
@@ -268,16 +280,73 @@ class MirthLoadTester:
     
     def run_test(self):
         try:
+            mpm = int(self.mpm_var.get())
+            delay = 60.0 / mpm  # Calculate delay between messages
+            self.log_message(f"Calculated delay between messages: {delay:.3f} seconds")
+            
+            if self.new_conn_var.get():
+                self.log_message("Mode: New connection per message")
+                self.run_test_new_connections(delay)
+            else:
+                self.log_message("Mode: Persistent connection")
+                self.run_test_persistent_connection(delay)
+                
+        except Exception as e:
+            error_msg = f"Setup error: {str(e)}"
+            self.log_message(error_msg, "ERROR")
+            self.status_var.set(error_msg)
+            
+        if self.is_running:  # If we got here due to an error
+            self.stop_test()
+            
+    def run_test_new_connections(self, delay):
+        """Run test creating new connection for each message"""
+        while self.is_running:
+            try:
+                self.log_message(f"Opening new connection to {self.ip_var.get()}:{self.port_var.get()}")
+                conn = Connection(self.ip_var.get(), int(self.port_var.get()))
+                conn.Open()
+                
+                # Log the message being sent (first few characters)
+                msg_preview = str(self.sample_message.Render())[:50] + "..."
+                self.log_message(f"Sending message: {msg_preview}")
+                
+                # Send message and get response
+                response = conn.Send(self.sample_message)
+                self.messages_sent += 1
+                self.progress_var.set(f"Messages sent: {self.messages_sent}")
+                
+                # Log the response
+                try:
+                    response_text = response.decode('windows-1252')
+                    self.log_message(f"Response received: {response_text}")
+                except:
+                    # If we can't decode the response, show the raw bytes
+                    self.log_message(f"Raw response received: {response}")
+                    
+                if self.messages_sent % 10 == 0:  # Log every 10th message
+                    self.log_message(f"Successfully sent {self.messages_sent} messages")
+                
+                conn.Close()
+                self.log_message("Connection closed")
+                
+                time.sleep(delay)
+                
+            except Exception as e:
+                error_msg = f"Error in message cycle: {str(e)}"
+                self.log_message(error_msg, "ERROR")
+                self.status_var.set(error_msg)
+                break
+                
+    def run_test_persistent_connection(self, delay):
+        """Run test using a single persistent connection"""
+        try:
             self.log_message(f"Attempting to connect to {self.ip_var.get()}:{self.port_var.get()}")
             conn = Connection(self.ip_var.get(), int(self.port_var.get()))
             
             try:
                 conn.Open()
                 self.log_message("Connection established successfully")
-                
-                mpm = int(self.mpm_var.get())
-                delay = 60.0 / mpm  # Calculate delay between messages
-                self.log_message(f"Calculated delay between messages: {delay:.3f} seconds")
                 
                 while self.is_running:
                     try:
@@ -316,14 +385,11 @@ class MirthLoadTester:
                 error_msg = f"Connection error: {str(e)}"
                 self.log_message(error_msg, "ERROR")
                 self.status_var.set(error_msg)
-            
+                
         except Exception as e:
             error_msg = f"Setup error: {str(e)}"
             self.log_message(error_msg, "ERROR")
             self.status_var.set(error_msg)
-        
-        if self.is_running:  # If we got here due to an error
-            self.stop_test()
 
 if __name__ == "__main__":
     root = tk.Tk()
