@@ -42,7 +42,7 @@ class MirthLoadTester:
         
         # Port input
         ttk.Label(input_frame, text="Port:").grid(row=1, column=0, sticky=tk.E, padx=(0,10), pady=5)
-        self.port_var = tk.StringVar(value="2205")
+        self.port_var = tk.StringVar(value="6661")
         self.port_entry = ttk.Entry(input_frame, textvariable=self.port_var, width=30)
         self.port_entry.grid(row=1, column=1, sticky=(tk.W, tk.E), pady=5)
         
@@ -62,6 +62,16 @@ class MirthLoadTester:
         self.new_conn_check.grid(row=3, column=0, columnspan=2, pady=5)
         tooltip = "When checked, opens a new connection for each message.\nWhen unchecked, keeps one persistent connection."
         self.new_conn_check.tooltip = tooltip  # Store tooltip text for future reference
+        
+        # Message type selection
+        ttk.Label(input_frame, text="Message Type:").grid(row=4, column=0, sticky=tk.E, padx=(0,10), pady=5)
+        msg_type_frame = ttk.Frame(input_frame)
+        msg_type_frame.grid(row=4, column=1, sticky=tk.W, pady=5)
+        
+        self.message_type_var = tk.StringVar(value="HL7")
+        ttk.Radiobutton(msg_type_frame, text="HL7", variable=self.message_type_var, value="HL7").pack(side=tk.LEFT, padx=5)
+        ttk.Radiobutton(msg_type_frame, text="XML", variable=self.message_type_var, value="XML").pack(side=tk.LEFT, padx=5)
+        ttk.Radiobutton(msg_type_frame, text="Raw", variable=self.message_type_var, value="Raw").pack(side=tk.LEFT, padx=5)
         
         # Status display
         status_font = font.Font(size=10)
@@ -121,7 +131,7 @@ class MirthLoadTester:
         self.browse_button.grid(row=0, column=2, padx=(10,0))
         
         # Initialize message
-        self.sample_message = Message()
+        self.sample_message = Message(message_type=self.message_type_var.get())
         self.load_message()
         
         # Initial log message
@@ -135,7 +145,13 @@ class MirthLoadTester:
         """Open file dialog to select message file"""
         file_path = filedialog.askopenfilename(
             title="Select Message File",
-            filetypes=[("XML files", "*.xml"), ("All files", "*.*")]
+            filetypes=[
+                ("All Message files", "*.xml *.hl7 *.txt"),
+                ("HL7 files", "*.hl7"),
+                ("XML files", "*.xml"),
+                ("Text files", "*.txt"),
+                ("All files", "*.*")
+            ]
         )
         if file_path:
             self.file_path_var.set(file_path)
@@ -149,16 +165,15 @@ class MirthLoadTester:
                 content = f.read().strip()
                 if not content:
                     raise ValueError("Empty file")
-                    
-                # Basic XML validation - will raise if invalid
-                import xml.etree.ElementTree as ET
-                ET.fromstring(content)
                 
+                # Update message with selected type
+                self.sample_message = Message(message_type=self.message_type_var.get())
                 self.sample_message.SetText(content)
-                self.log_message(f"Successfully loaded message from {file_path}")
+                self.log_message(f"Successfully loaded message from {file_path} (Type: {self.message_type_var.get()})")
                 
         except Exception as e:
             self.log_message(f"Error loading {file_path} ({str(e)}), using default message", "WARNING")
+            self.sample_message = Message(message_type=self.message_type_var.get())
             self.sample_message.SetText(self.default_message)
             
     def send_single_message(self):

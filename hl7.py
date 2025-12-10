@@ -109,14 +109,16 @@ class Message:
 	An HL7 Message object, which contains one or more Lines. 
 	
 	"""
-	def __init__( self, text=None ):
+	def __init__( self, text=None, message_type="HL7" ):
 		""" 
 		Create a new HL7 Message object.
 		
 		Arguments:
 		text -- Optional text block to use as the message content. If provided, it will be used as a single message.
+		message_type -- The type of message: "XML", "HL7", or "Raw". Defaults to "HL7".
 		"""
 		self.Lines = []
+		self.message_type = message_type
 		if text is not None:
 			self.SetText(text)
 
@@ -147,14 +149,21 @@ class Message:
 
 	def Render( self ):
 		""" 
-		Render all lines in this message with required null bytes:
-		- Two null bytes at the start
-		- One null byte at the end
+		Render all lines in this message with appropriate framing based on message type:
+		- XML: Two null bytes at start, one at end (NUL + NUL + content + NUL)
+		- HL7: MLLP framing (VT + content + FS + CR)
+		- Raw: No framing, just content
 		"""
 		output = ''
 		for thisLine in self.Lines:
 			output += thisLine.Render()
-		return NUL + NUL + output + NUL
+		
+		if self.message_type == "XML":
+			return NUL + NUL + output + NUL
+		elif self.message_type == "HL7":
+			return VT + output + FS + CR
+		else:  # Raw
+			return output
 
 class Connection:
 	""" 
