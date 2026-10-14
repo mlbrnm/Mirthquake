@@ -9,8 +9,8 @@ Classes:
 """
 
 import datetime
-import socket
 import random
+from quake.transport import Client, Endpoint, frame
 
 SOH 	= chr( 0x01 )	# Start of Heading
 STX 	= chr( 0x02 )	# Start of Text
@@ -94,7 +94,7 @@ class Line:
 		data -- Whatever text this line will contain (including all segment and component separators)
 		
 		Example:
-		Line("MSH|^&\|SendingApp|SendingFac|ReceivingApp|ReceivingFac|"+CurrentDate()+"||ADT^A01|995476|P|2.2|995476||AL|||||||2.5")
+		Line("MSH|^~\\&|SendingApp|SendingFac|ReceivingApp|ReceivingFac|"+CurrentDate()+"||ADT^A01|995476|P|2.2")
 		"""
 		self.Data = data
 	def Render( self ):
@@ -130,7 +130,7 @@ class Message:
 		content -- Whatever text this line will contain (including all segment and component separators)
 
 		Example:
-		AddLine("MSH|^&\|SendingApp|SendingFac|ReceivingApp|ReceivingFac|"+CurrentDate()+"||ADT^A01|995476|P|2.2|995476||AL|||||||2.5")
+		AddLine("MSH|^~\\&|SendingApp|SendingFac|ReceivingApp|ReceivingFac|"+CurrentDate()+"||ADT^A01|995476|P|2.2")
 
 		"""
 		self.Lines.append( Line( content ) )
@@ -154,9 +154,10 @@ class Message:
 		- HL7: MLLP framing (VT + content + FS + CR)
 		- Raw: No framing, just content
 		"""
-		output = ''
-		for thisLine in self.Lines:
-			output += thisLine.Render()
+		output = '\r'.join(thisLine.Render().rstrip('\r\n') for thisLine in self.Lines) if self.message_type == "HL7" else ''.join(thisLine.Render() for thisLine in self.Lines)
+		if self.message_type == "HL7":
+			from quake.messages import normalize
+			output = normalize(output)
 		
 		if self.message_type == "XML":
 			return NUL + NUL + output + NUL
@@ -170,7 +171,7 @@ class Connection:
 	A Connection object, manages the socket connection and allows you to send an HL7 Message directly. 
 	
 	"""
-	def __init__( self, host, port ):
+	def __init__( self, host, port, timeout=10.0, encoding="windows-1252" ):
 		""" 
 		Create a new connection object.
 		
@@ -181,29 +182,47 @@ class Connection:
 		"""
 		self.HOST = host;
 		self.PORT = port;
+		self.timeout = timeout
+		self.encoding = encoding
+		self._client = None
 		
 	def Open( self ):
 		""" 
 		Attempt to open the connection to the server.
 		
 		"""
-		self.Socket = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
-		self.Socket.connect( ( self.HOST, self.PORT ) )
+		self.Close()
+		self._client = Client(Endpoint(host=self.HOST, port=self.PORT, encoding=self.encoding,
+			connect_timeout=self.timeout, response_timeout=self.timeout))
+		self._client.open()
+		self.Socket = self._client.sock
 
 	def Send( self, msg ):
 		"""
-		Send a specific HL7.Message to the server and wait for at least one packet in response.
+		Send a specific HL7.Message and wait for a complete framed response.
 		
 		Returns:
 		bytes -- The raw response from the server
 		"""
-		self.Socket.send( msg.Render().encode( "windows-1252" ) )
-		response = self.Socket.recv( 1024 )
-		return response
+		if self._client is None or self._client.sock is None:
+			raise RuntimeError("Connection is not open; call Open() first.")
+		from dataclasses import replace
+		from quake.transport import FrameReader
+		kind = {"HL7": "mllp", "XML": "xml"}.get(msg.message_type, "raw")
+		if self._client.endpoint.framing != kind:
+			self._client.endpoint = replace(self._client.endpoint, framing=kind)
+			self._client.reader = FrameReader(self._client.endpoint)
+		self.Socket.settimeout(self.timeout)
+		self.Socket.sendall(msg.Render().encode(self.encoding))
+		payload = self._client.reader.receive(self.Socket)
+		# Preserve the historical API: callers receive framed response bytes.
+		return frame(payload, self._client.endpoint)
 
 	def Close( self ):
 		"""
 		Close the connection to the server.
 		
 		"""
-		self.Socket.close()
+		if self._client is not None:
+			self._client.close()
+			self._client = None
