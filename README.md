@@ -1,4 +1,5 @@
 # MirthQuake
+<img width="1587" height="1180" alt="Screenshot 2026-10-13 224033" src="https://github.com/user-attachments/assets/4d5a9d4a-fc10-48fc-bae4-58cbadbf2df1" />
 
 **A dependency-free HL7 v2 interface testing workbench for Mirth Connect and generic TCP interfaces.** Send a single message, run a paced concurrent load test, or act as the receiving interface to exercise an outbound sender—including its failure handling.
 
